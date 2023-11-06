@@ -1,0 +1,19 @@
+import express from "express";
+
+const router = express.Router();
+const app = express();
+const PORT = 3000;
+
+app.use(express.json()); // body parser
+
+router.get("/", (req, res) => {
+  return res.status(200).json({ message: "Success" });
+});
+
+app.use("/api", [router]);
+
+app.listen(PORT, () => {
+  console.log(PORT, `${PORT} 포트로 서버가 열렸어요!`);
+});
+
+export default router;
