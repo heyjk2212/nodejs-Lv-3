@@ -22,16 +22,16 @@ model Categories {
 
 model Menus {
   menuId Int @id @default(autoincrement()) @map("menuId")
-  CategoryId Int @map("CategoryId")
+  CategoryId Int @map("categoryId")
   name String @map("name")
   description String @map("description") @db.Text
   image String @map("image")
   price Int @map("price")
   order Int @map("order")
-  status String @map("status")
+  status String? @default("FOR_SALE") @map("status")
 
   Category Categories @relation(fields: [CategoryId], references: [categoryId], onDelete: Cascade)
-
+  
   @@map("Menus")
 }
 
