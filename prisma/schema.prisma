@@ -9,3 +9,31 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+
+model Categories {
+  categoryId Int @id @default(autoimcrement()) @map("categoryId")
+  name String @@map("name")
+  order Int @map("order")
+
+  Menus Menus[]  
+  @@map("Categories")
+}
+
+model Menus {
+  menuId Int @id @default(autoincrement()) @map("menuId")
+  CategoryId Int @map("CategoryId")
+  name String @map("name")
+  description String @map("description") @db.Text
+  image String @map("image")
+  price Int @map("price")
+  order Int @map("order")
+  status String @map("status")
+
+  Category Categories @relation(fields: [CategoryId], references: [categoryId], onDelete: Cascade)
+
+  @@map("Menus")
+}
+
+// References 
+// https://www.prisma.io/docs/concepts/components/prisma-schema/data-model
