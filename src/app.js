@@ -4,7 +4,7 @@ import MenusRouter from "./routes/menus.router.js";
 
 const router = express.Router();
 const app = express();
-const PORT = 3000;
+const PORT = 4004;
 
 app.use(express.json()); // body parser
 
