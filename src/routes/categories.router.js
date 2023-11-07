@@ -4,27 +4,22 @@ import Joi from "joi";
 
 const router = express.Router();
 
-// [✔️] 유효성 검증
-// 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
-const schema = Joi.object({
-  // 클라이언트가 전달한 Body 데이터를 검증
-  name: Joi.string().min(1).max(50).required(),
-  // 숫자가 정수인지 검증
-  order: Joi.number().integer().required(),
-
-  // 클라이언트가 전달한 Params 데이터를 검증
-  categoryId: Joi.number().integer().required(),
-});
-
 // 1. 카테고리 등록 API - [POST]
 // [✔️] 카테고리 이름을 **request**에서 전달받기
 // [✔️] 새롭게 등록된 카테고리는 **가장 마지막 순서**로 설정됩니다.
 router.post("/categories", async (req, res, next) => {
   try {
+    // [✔️] 유효성 검증
+    // 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
+    const categorySchema = Joi.object({
+      // 클라이언트가 전달한 Body 데이터를 검증
+      name: Joi.string().min(1).max(50).required(),
+    });
+
     // 클라이언트로부터 받은 데이터를 변수에 할당시킨다.
     // const { name } = req.body;
     // validateAsync => 검증에 실패했을 때 에러가 발생한다.
-    const validation = await schema.validateAsync(req.body); // req.body에 있는 데이터를 검증
+    const validation = await categorySchema.validateAsync(req.body); // req.body에 있는 데이터를 검증
 
     const { name } = validation; // 검증에 성공한 validation에서 반환된 값을 쓴다.
 
@@ -99,14 +94,28 @@ router.get("/categories", async (req, res, next) => {
 // [✔️] 선택한 카테고리가 존재하지 않을 경우, “존재하지 않는 카테고리입니다." 메시지 반환하기
 router.patch("/category/:categoryId", async (req, res, next) => {
   try {
+    // [✔️] 유효성 검증
+    // 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
+    const idValidationSchema = Joi.object({
+      // 클라이언트가 전달한 Params 데이터를 검증
+      categoryId: Joi.number().integer().required(),
+    });
+
+    const dataSchema = Joi.object({
+      // 클라이언트가 전달한 Body 데이터를 검증
+      name: Joi.string().min(1).max(50).required(),
+      // 숫자가 정수인지 검증
+      order: Joi.number().integer().required(),
+    });
+
     // 변경할 정보 id 가져오기
     // const { categoryId } = req.params;
-    const idValidation = await schema.validateAsync(req.params);
+    const idValidation = await idValidationSchema.validateAsync(req.params);
     const { categoryId } = idValidation;
 
     // 클라이언트에서 보낸 변경할 정보들을 가져온다
     // const { name, order } = req.body;
-    const validation2 = await schema.validateAsync(req.body);
+    const validation2 = await dataSchema.validateAsync(req.body);
 
     const { name, order } = validation2;
 
@@ -163,9 +172,16 @@ router.patch("/category/:categoryId", async (req, res, next) => {
 // [✔️] 선택한 카테고리가 존재하지 않을 경우, “존재하지 않는 카테고리입니다." 메시지 반환하기
 router.delete("/category/:categoryId", async (req, res, next) => {
   try {
+    // [✔️] 유효성 검증
+    // 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
+    const categorySchema3 = Joi.object({
+      // 클라이언트가 전달한 Params 데이터를 검증
+      categoryId: Joi.number().integer().required(),
+    });
+
     // 삭제할 카테고리 아이디 전달받기
     // const { categoryId } = req.params;
-    const idValidation2 = await schema.validateAsync(req.params);
+    const idValidation2 = await categorySchema3.validateAsync(req.params);
     const { categoryId } = idValidation2;
 
     // 존재하지 않는 id를 입력했을 때
@@ -193,7 +209,7 @@ router.delete("/category/:categoryId", async (req, res, next) => {
       },
     });
 
-    return res.status(200).json({ message: "카테고리 정보를 수정하였습니다." });
+    return res.status(200).json({ message: "카테고리 정보를 삭제하였습니다." });
   } catch (error) {
     console.error(error);
 
