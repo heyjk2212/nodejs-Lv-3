@@ -1,7 +1,20 @@
 import express from "express";
 import { prisma } from "../utils/prisma/index.js";
+import Joi from "joi";
 
 const router = express.Router();
+
+// [✔️] 유효성 검증
+// 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
+const schema = Joi.object({
+  // 클라이언트가 전달한 Body 데이터를 검증
+  name: Joi.string().min(1).max(50).required(),
+  // 숫자가 정수인지 검증
+  order: Joi.number().integer().required(),
+
+  // 클라이언트가 전달한 Params 데이터를 검증
+  categoryId: Joi.number().integer().required(),
+});
 
 // 1. 카테고리 등록 API - [POST]
 // [✔️] 카테고리 이름을 **request**에서 전달받기
@@ -9,7 +22,11 @@ const router = express.Router();
 router.post("/categories", async (req, res, next) => {
   try {
     // 클라이언트로부터 받은 데이터를 변수에 할당시킨다.
-    const { name } = req.body;
+    // const { name } = req.body;
+    // validateAsync => 검증에 실패했을 때 에러가 발생한다.
+    const validation = await schema.validateAsync(req.body); // req.body에 있는 데이터를 검증
+
+    const { name } = validation; // 검증에 성공한 validation에서 반환된 값을 쓴다.
 
     // maxOrder값 찾기
     const maxOrder = await prisma.categories.findFirst({
@@ -35,6 +52,14 @@ router.post("/categories", async (req, res, next) => {
     return res.status(200).json({ message: "카테고리를 등록하였습니다." });
   } catch (error) {
     console.error(error);
+
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
@@ -75,10 +100,15 @@ router.get("/categories", async (req, res, next) => {
 router.patch("/category/:categoryId", async (req, res, next) => {
   try {
     // 변경할 정보 id 가져오기
-    const { categoryId } = req.params;
+    // const { categoryId } = req.params;
+    const idValidation = await schema.validateAsync(req.params);
+    const { categoryId } = idValidation;
 
     // 클라이언트에서 보낸 변경할 정보들을 가져온다
-    const { name, order } = req.body;
+    // const { name, order } = req.body;
+    const validation2 = await schema.validateAsync(req.body);
+
+    const { name, order } = validation2;
 
     // 존재하지 않는 id를 입력했을 때
     if (!categoryId) {
@@ -113,6 +143,14 @@ router.patch("/category/:categoryId", async (req, res, next) => {
     return res.status(200).json({ message: "카테고리 정보를 수정하였습니다." });
   } catch (error) {
     console.error(error);
+
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
@@ -126,7 +164,9 @@ router.patch("/category/:categoryId", async (req, res, next) => {
 router.delete("/category/:categoryId", async (req, res, next) => {
   try {
     // 삭제할 카테고리 아이디 전달받기
-    const { categoryId } = req.params;
+    // const { categoryId } = req.params;
+    const idValidation2 = await schema.validateAsync(req.params);
+    const { categoryId } = idValidation2;
 
     // 존재하지 않는 id를 입력했을 때
     if (!categoryId) {
@@ -156,6 +196,14 @@ router.delete("/category/:categoryId", async (req, res, next) => {
     return res.status(200).json({ message: "카테고리 정보를 수정하였습니다." });
   } catch (error) {
     console.error(error);
+
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });

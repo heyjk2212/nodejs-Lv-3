@@ -1,8 +1,28 @@
 import express from "express";
 import { prisma } from "../utils/prisma/index.js";
-import { Prisma } from "@prisma/client";
+import Joi from "joi";
 
 const router = express.Router();
+
+// [✔️] 유효성 검증
+// 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
+const schema = Joi.object({
+  // 클라이언트가 전달한 Body, Params 데이터를 검증 (with Joi)
+  name: Joi.string().min(1).max(30).required(),
+  description: Joi.string().min(1).max(100).required(),
+  image: Joi.string().min(1).max(50).required(),
+  // valid 메소드를 사용하여 허용되는 값을 명시적으로 지정할 수 있다.
+  // 이렇게 하면 status 필드의 값은 'FOR_SALE' 또는 'SOLD_OUT' 중 하나여야 하며,
+  // 문자열 길이가 1에서 10 사이여야 한다. [중요!]
+  status: Joi.string().valid("FOR_SALE", "SOLD_OUT").min(1).max(10),
+  // 숫자가 정수인지 검증
+  price: Joi.number().integer().required(),
+  order: Joi.number().integer().required(),
+
+  // // 클라이언트가 전달한 Params 데이터를 검증
+  CategoryId: Joi.number().integer().required(),
+  menuId: Joi.number().integer().required(),
+});
 
 // 5. 메뉴 등록 API [POST]
 // [✔️] 메뉴 이름, 설명, 이미지, 가격을 request에서 전달받기
@@ -13,7 +33,9 @@ const router = express.Router();
 router.post("/category/:CategoryId/menus", async (req, res, next) => {
   try {
     // 메뉴를 등록할 카테고리 id 받아오기
-    const { CategoryId } = req.params;
+    // const { CategoryId } = req.params;
+    const idValidation = await schema.validateAsync(req.params);
+    const { CategoryId } = idValidation;
 
     if (!CategoryId) {
       return res
@@ -34,7 +56,10 @@ router.post("/category/:CategoryId/menus", async (req, res, next) => {
     const newOder = maxOrder ? maxOrder.order + 1 : 1;
 
     // 클라이언트에서 보낸 정보 받아오기
-    const { name, description, image, price, status } = req.body;
+    // const { name, description, image, price, status } = req.body;
+    const validation = await schema.validateAsync(req.body);
+
+    const { name, description, image, price, status } = validation;
 
     if (price < 0) {
       return res
@@ -66,6 +91,14 @@ router.post("/category/:CategoryId/menus", async (req, res, next) => {
     return res.status(201).json({ message: "메뉴를 등록하였습니다." });
   } catch (error) {
     console.error(error);
+
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
@@ -78,7 +111,9 @@ router.post("/category/:CategoryId/menus", async (req, res, next) => {
 router.get("/category/:CategoryId/menus", async (req, res, next) => {
   try {
     // 조회할 카테고리 Id
-    const { CategoryId } = req.params;
+    // const { CategoryId } = req.params;
+    const idValidation2 = await schema.validateAsync(req.params);
+    const { CategoryId } = idValidation2;
 
     if (!CategoryId) {
       return res
@@ -109,6 +144,13 @@ router.get("/category/:CategoryId/menus", async (req, res, next) => {
   } catch (error) {
     console.error(error);
 
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
@@ -120,7 +162,9 @@ router.get("/category/:CategoryId/menus", async (req, res, next) => {
 router.get("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   try {
     // 조회하고 싶은 카테고리 ID, 메뉴 ID가져오기
-    const { CategoryId, menuId } = req.params;
+    // const { CategoryId, menuId } = req.params;
+    const idValidation3 = await schema.validateAsync(req.params);
+    const { CategoryId, menuId } = idValidation3;
 
     // 나중에 다시 확인 필요!
     if (!CategoryId) {
@@ -152,6 +196,13 @@ router.get("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   } catch (error) {
     console.error(error);
 
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
@@ -165,10 +216,15 @@ router.get("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
 router.patch("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   try {
     // 수정하고 싶은 카테고리 ID, 메뉴 ID가져오기
-    const { CategoryId, menuId } = req.params;
+    // const { CategoryId, menuId } = req.params;
+    const idValidation4 = await schema.validateAsync(req.params);
+    const { CategoryId, menuId } = idValidation4;
 
     // 클라이언트에서 보낸 데이터 받기
-    const { name, description, price, order, status } = req.body;
+    // const { name, description, price, order, status } = req.body;
+    const validation2 = await schema.validateAsync(req.body);
+
+    const { name, description, price, order, status } = validation2;
 
     // 가격확인
     if (price < 0) {
@@ -218,6 +274,14 @@ router.patch("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
     return res.status(200).json({ message: "메뉴를 수정하였습니다." });
   } catch (error) {
     console.error(error);
+
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
@@ -230,7 +294,9 @@ router.patch("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
 router.delete("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   try {
     // 삭제하고 싶은 카테고리 ID, 메뉴 ID가져오기
-    const { CategoryId, menuId } = req.params;
+    // const { CategoryId, menuId } = req.params;
+    const idValidation5 = await schema.validateAsync(req.params);
+    const { CategoryId, menuId } = idValidation5;
 
     // 나중에 다시 확인 필요!
     if (!CategoryId) {
@@ -265,6 +331,13 @@ router.delete("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   } catch (error) {
     console.error(error);
 
+    // 발생한 에러가 예상된 에러인 경우
+    if (error.name === "ValidationError") {
+      // Joi에서 발생한 에러
+      return res.status(400).json({ errorMessage: error.message });
+    }
+
+    // 예상하지 못한 에러인 경우
     return res
       .status(500)
       .json({ errorMessage: "서버에서 문제가 발생하였습니다." });
