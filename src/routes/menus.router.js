@@ -4,32 +4,22 @@ import Joi from "joi";
 
 const router = express.Router();
 
-// [✔️] 유효성 검증
-// 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
+// 유효성 검증을 위한 Joi Schema
 const schema = Joi.object({
-  // 클라이언트가 전달한 Body, Params 데이터를 검증 (with Joi)
-  name: Joi.string().min(1).max(30).required(),
-  description: Joi.string().min(1).max(100).required(),
-  image: Joi.string().min(1).max(50).required(),
+  name: Joi.string().min(1).max(30),
+  description: Joi.string().min(1).max(100),
+  image: Joi.string().min(1).max(50),
   // valid 메소드를 사용하여 허용되는 값을 명시적으로 지정할 수 있다.
   // 이렇게 하면 status 필드의 값은 'FOR_SALE' 또는 'SOLD_OUT' 중 하나여야 하며,
   // 문자열 길이가 1에서 10 사이여야 한다. [중요!]
   status: Joi.string().valid("FOR_SALE", "SOLD_OUT").min(1).max(10),
-  // 숫자가 정수인지 검증
-  price: Joi.number().integer().required(),
-  order: Joi.number().integer().required(),
-
-  // // 클라이언트가 전달한 Params 데이터를 검증
-  CategoryId: Joi.number().integer().required(),
-  menuId: Joi.number().integer().required(),
+  price: Joi.number().integer(),
+  order: Joi.number().integer(),
+  CategoryId: Joi.number().integer(),
+  menuId: Joi.number().integer(),
 });
 
 // 5. 메뉴 등록 API [POST]
-// [✔️] 메뉴 이름, 설명, 이미지, 가격을 request에서 전달받기
-// [✔️] 새롭게 등록된 메뉴는 **가장 마지막 순서**로 설정됩니다.
-// [✔️] 메뉴는 두 가지 상태, **판매 중(`FOR_SALE`)및 매진(`SOLD_OUT`)** 을 가질 수 있습니다.
-// [✔️] 메뉴 등록 시 기본 상태는 **판매 중(`FOR_SALE`)** 입니다.
-// [✔️] 가격이 0원 이하일 경우, “메뉴 가격은 0보다 작을 수 없습니다.” 메시지 반환하기
 router.post("/category/:CategoryId/menus", async (req, res, next) => {
   try {
     // 메뉴를 등록할 카테고리 id 받아오기
@@ -106,8 +96,6 @@ router.post("/category/:CategoryId/menus", async (req, res, next) => {
 });
 
 // 6. 카테고리별 메뉴 조회 API  [GET]
-// [✔️] 선택한 카테고리의 메뉴 이름, 이미지, 가격, 순서, 판매 상태 조회하기
-// [✔️] 조회된 메뉴는 지정된 순서에 따라 정렬됩니다.
 router.get("/category/:CategoryId/menus", async (req, res, next) => {
   try {
     // 조회할 카테고리 Id
@@ -157,8 +145,7 @@ router.get("/category/:CategoryId/menus", async (req, res, next) => {
   }
 });
 
-// 7. 메뉴 상세 조회 API [GET] ********
-// [✔️] 선택한 카테고리의 메뉴 이름, 설명, 이미지, 가격, 순서, 판매 상태 조회하기
+// 7. 메뉴 상세 조회 API [GET]
 router.get("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   try {
     // 조회하고 싶은 카테고리 ID, 메뉴 ID가져오기
@@ -210,9 +197,6 @@ router.get("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
 });
 
 // 8. 메뉴 수정 API [PATCH]
-// [✔️] 메뉴 이름, 설명, 이미지, 가격, 순서, 판매 상태를 **request**에서 전달받기
-// [✔️] 가격이 0원 이하일 경우, “메뉴 가격은 0보다 작을 수 없습니다.” 메시지 반환하기
-// [✔️] 선택한 메뉴가 존재하지 않을 경우, “존재하지 않는 메뉴입니다." 메시지 반환하기
 router.patch("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   try {
     // 수정하고 싶은 카테고리 ID, 메뉴 ID가져오기
@@ -289,8 +273,6 @@ router.patch("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
 });
 
 // 9. 메뉴 삭제 API [DELETE]
-// [✔️] 선택한 메뉴 삭제하기
-// [✔️] 선택한 메뉴가 존재하지 않을 경우, “존재하지 않는 메뉴입니다." 메시지 반환하기
 router.delete("/category/:CategoryId/menu/:menuId", async (req, res, next) => {
   try {
     // 삭제하고 싶은 카테고리 ID, 메뉴 ID가져오기
