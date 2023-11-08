@@ -71,14 +71,16 @@
 
 ## API SPEC
 
+### 3000 포트사용
+
 | 기능                 | METHOD | URL                                       | Req body | Res body |
 | :------------------- | :----: | :---------------------------------------- | :------- | :------- |
-| 카테고리 등록        |  POST  | /api/categories                           |          |
-| 카테고리 조회        |  GET   | /api/categories                           |          |          |
-| 카테고리 수정        | PATCH  | /api/categories/:categoryId               |
-| 카테고리 삭제        | DELETE | /api/categories/:categoryId               |          |          |
-| 메뉴 등록            |  POST  | /api/categories/:CategoryId/menus         |          |
-| 카테고리별 메뉴 조회 |  GET   | /api/categories/:CategoryId/menus/:menuId |          |
-| 메뉴 상세 조회       |  GET   | /api/categories/:CategoryId/menus/:menuId |          |          |
-| 메뉴 수정            | PATCH  | /api/categories/:CategoryId/menus/:menuId |          |          |
-| 메뉴 삭제            | DELETE | /api/categories/:CategoryId/menus/:menuId |          |
+| 카테고리 등록        |  POST  | http://localhost:3000/api/categories                           |       { "name": "중식" }   |{ "message": "카테고리를 등록하였습니다." }
+| 카테고리 목록 조회        |  GET   | http://localhost:3000/api/categories                           |       {  }   |      { "data": [ { "id": 1, "name": "한식", "order": 1 }, { "id": 2, "name": "일식", "order": 2 }, { "id": 4, "name": "중식", "order": 3 } ] }    |
+| 카테고리 정보 변경        | PATCH  | http://localhost:3000/api/categories/:categoryId               |{ "name": "양식", "order": 2 }| { "message": "카테고리 정보를 수정하였습니다." }
+| 카테고리 삭제        | DELETE | http://localhost:3000/api/categories/:categoryId               |       { }   |      { "message": "카테고리 정보를 삭제하였습니다." }    |
+| 메뉴 등록            |  POST  | http://localhost:3000/api/categories/:CategoryId/menus         |    { "name": "김치찌개", "description":"김치찌개는 맛있다.", "image":"https://hanghae99-assets-1.s3.ap-northeast-2.amazonaws.com/Lv/Screenshot-Kimchi", "price": 8000 }      |{ "message": "메뉴를 등록하였습니다." }
+| 카테고리별 메뉴 조회 |  GET   | http://localhost:3000/api/categories/:CategoryId/menus/:menuId |       {}   |{ "data": [ { "id": 2, "name": "된장찌개", "image": "https://hanghae99-assets-1.s3.ap-northeast-2.amazonaws.com/Lv/Screenshot-Miso", "price": 7500, "order": 1, "status": "SOLD_OUT" }, { "id": 1, "name": "김치찌개", "image": "https://hanghae99-assets-1.s3.ap-northeast-2.amazonaws.com/Lv/Screenshot-Kimchi", "price": 8000, "order": 2, "status": "FOR_SALE" } ] }
+| 메뉴 상세 조회       |  GET   | http://localhost:3000/api/categories/:CategoryId/menus/:menuId |      {  }    |     { "data": { "id": 1, "name": "김치찌개", "description": "김치찌개는 맛있다.", "image": "https://hanghae99-assets-1.s3.ap-northeast-2.amazonaws.com/Lv/Screenshot-Kimchi", "price": 8000, "order": 2, "status": "FOR_SALE" } }     |
+| 메뉴 수정            | PATCH  | http://localhost:3000/api/categories/:CategoryId/menus/:menuId |   { "name": "된장찌개", "description":"된장찌개는 맛있었을것이다?", "price": 7500, "order":1, "status":"SOLD_OUT" }       |   { "message": "메뉴를 수정하였습니다." }       |
+| 메뉴 삭제            | DELETE | http://localhost:3000/api/categories/:CategoryId/menus/:menuId |       { }   |{ "message": "메뉴를 삭제하였습니다." }
