@@ -1,6 +1,7 @@
 # nodejs-Lv-3
 
 ## 과제 요구 사항:
+
 - ERD 작성하기
 - prisma.schema 파일에서 각 모델을 작성하기
 - API 구현하기
@@ -40,6 +41,7 @@
 ```
 
 ## Directory Structure
+
 ```
 ├── prisma
 │   └── schema.prisma
@@ -56,6 +58,7 @@
 ```
 
 ## Tech Stack
+
 1. 데이터베이스: `MySQL`
 2. ORM: `Prisma`
 3. 웹 프레임워크: `Express.js`
@@ -63,27 +66,19 @@
 5. 모듈 시스템: `ES6`
 
 ## ERD
-<img src= "https://github.com/heyjk2212/nodejs-Lv-3/assets/147573753/cc06cd0e-3191-44e3-b78f-fc8bda2f8784" width="700">
 
+<img src= "https://github.com/heyjk2212/nodejs-Lv-3/assets/147573753/cc06cd0e-3191-44e3-b78f-fc8bda2f8784" width="700">
 
 ## API SPEC
 
-|기능|METHOD|URL|Req body|Res body|
-|:--|:--:|:--|:--|:--|
-|카테고리 등록|POST|/api/categories||
-|카테고리 조회|GET|/api/categories|||
-|카테고리 수정|PATCH|/api/category/:categoryId|
-|카테고리 삭제|DELETE|/api/category/:categoryId|||
-|메뉴 등록|POST|/api/category/:CategoryId/menus||
-|카테고리별 메뉴 조회|GET|/api/category/:CategoryId/menu/:menuId||
-|메뉴 상세 조회|GET|/api/category/:CategoryId/menu/:menuId|||
-|메뉴 수정|PATCH|/api/category/:CategoryId/menu/:menuId|||
-|메뉴 삭제 |DELETE|/api/category/:CategoryId/menu/:menuId||
-
-
-
-
-
-
-
-
+| 기능                 | METHOD | URL                                       | Req body | Res body |
+| :------------------- | :----: | :---------------------------------------- | :------- | :------- |
+| 카테고리 등록        |  POST  | /api/categories                           |          |
+| 카테고리 조회        |  GET   | /api/categories                           |          |          |
+| 카테고리 수정        | PATCH  | /api/categories/:categoryId               |
+| 카테고리 삭제        | DELETE | /api/categories/:categoryId               |          |          |
+| 메뉴 등록            |  POST  | /api/categories/:CategoryId/menus         |          |
+| 카테고리별 메뉴 조회 |  GET   | /api/categories/:CategoryId/menus/:menuId |          |
+| 메뉴 상세 조회       |  GET   | /api/categories/:CategoryId/menus/:menuId |          |          |
+| 메뉴 수정            | PATCH  | /api/categories/:CategoryId/menus/:menuId |          |          |
+| 메뉴 삭제            | DELETE | /api/categories/:CategoryId/menus/:menuId |          |
