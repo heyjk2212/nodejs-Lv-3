@@ -14,7 +14,7 @@ datasource db {
 model Categories {
   categoryId Int @id @default(autoincrement()) @map("categoryId")
   name String @map("name")
-  order Int @map("order")
+  order Int @map("order") 
 
   Menus Menus[]  
   @@map("Categories")

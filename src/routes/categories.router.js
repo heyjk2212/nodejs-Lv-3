@@ -4,26 +4,25 @@ import Joi from "joi";
 
 const router = express.Router();
 
+// [나중에 다시 확인!] - 이렇게 joi schema를 이렇게 한번에 정의하고 쓰는게 좋을까? 아니면 각 API에 맞는 schema를 따로 정의하는게 맞을까?
+// 유효성 검증을 위한 Joi Schema
+const schema = Joi.object({
+  name: Joi.string().min(1).max(50),
+  order: Joi.number().integer(),
+  categoryId: Joi.number().integer(),
+});
+
 // 1. 카테고리 등록 API - [POST]
-// [✔️] 카테고리 이름을 **request**에서 전달받기
-// [✔️] 새롭게 등록된 카테고리는 **가장 마지막 순서**로 설정됩니다.
 router.post("/categories", async (req, res, next) => {
   try {
-    // [✔️] 유효성 검증
-    // 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
-    const categorySchema = Joi.object({
-      // 클라이언트가 전달한 Body 데이터를 검증
-      name: Joi.string().min(1).max(50).required(),
-    });
-
     // 클라이언트로부터 받은 데이터를 변수에 할당시킨다.
     // const { name } = req.body;
     // validateAsync => 검증에 실패했을 때 에러가 발생한다.
-    const validation = await categorySchema.validateAsync(req.body); // req.body에 있는 데이터를 검증
+    const validation = await schema.validateAsync(req.body); // req.body에 있는 데이터를 검증
 
     const { name } = validation; // 검증에 성공한 validation에서 반환된 값을 쓴다.
 
-    // maxOrder값 찾기
+    // 해당하는 가장 마지막 order를 가져온다(the most recently added order value)
     const maxOrder = await prisma.categories.findFirst({
       select: {
         order: true,
@@ -33,6 +32,7 @@ router.post("/categories", async (req, res, next) => {
       },
     });
 
+    // order 값이 이미 존재한다면 1을 더하고, order값이 존재하지 않다면 1을 할당시켜준다.
     const newOder = maxOrder ? maxOrder.order + 1 : 1;
 
     // 받은 데이터 db에 저장
@@ -62,8 +62,6 @@ router.post("/categories", async (req, res, next) => {
 });
 
 // 2. 카테고리 목록 조회 API - [GET]
-// [✔️] 등록된 모든 카테고리의 카테고리 이름, 순서를 조회하기
-// [✔️] 조회된 카테고리는 지정된 순서대로 정렬됩니다.
 router.get("/categories", async (req, res, next) => {
   try {
     // db에서 데이터를 가져와야한다
@@ -90,64 +88,60 @@ router.get("/categories", async (req, res, next) => {
 });
 
 // 3. 카테고리 정보 변경 API [PATCH]
-// [✔️] 카테고리 이름, 순서를 **request**에서 전달받기
-// [✔️] 선택한 카테고리가 존재하지 않을 경우, “존재하지 않는 카테고리입니다." 메시지 반환하기
-router.patch("/category/:categoryId", async (req, res, next) => {
+router.patch("/categories/:categoryId", async (req, res, next) => {
   try {
-    // [✔️] 유효성 검증
-    // 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
-    const idValidationSchema = Joi.object({
-      // 클라이언트가 전달한 Params 데이터를 검증
-      categoryId: Joi.number().integer().required(),
-    });
-
-    const dataSchema = Joi.object({
-      // 클라이언트가 전달한 Body 데이터를 검증
-      name: Joi.string().min(1).max(50).required(),
-      // 숫자가 정수인지 검증
-      order: Joi.number().integer().required(),
-    });
-
-    // 변경할 정보 id 가져오기
     // const { categoryId } = req.params;
-    const idValidation = await idValidationSchema.validateAsync(req.params);
+    const idValidation = await schema.validateAsync(req.params);
     const { categoryId } = idValidation;
 
-    // 클라이언트에서 보낸 변경할 정보들을 가져온다
     // const { name, order } = req.body;
-    const validation2 = await dataSchema.validateAsync(req.body);
-
+    const validation2 = await schema.validateAsync(req.body);
     const { name, order } = validation2;
 
-    // 존재하지 않는 id를 입력했을 때
-    if (!categoryId) {
+    // 현재 카테고리를 가리킨다
+    const currentCategory = await prisma.categories.findUnique({
+      where: { categoryId: +categoryId },
+    });
+
+    if (!currentCategory) {
       return res
         .status(404)
         .json({ errorMessage: "존재하지 않는 카테고리입니다." });
     }
 
-    // 카테고리가 존재하는지 확인한다 [중요!]
-    const findCategory = await prisma.categories.findUnique({
-      where: { categoryId: +categoryId },
-    });
+    // 현재 카테고리에서 다른 order값으로 변경하려면
+    if (order !== currentCategory.order) {
+      const targetCategory = await prisma.categories.findFirst({
+        where: { order },
+      });
 
-    if (!findCategory) {
-      return res
-        .status(404)
-        .json({ errorMessage: "존재하지 않는 카테고리입니다." });
+      if (targetCategory) {
+        const tempOrder = currentCategory.order; // 현재 카테고리의 order 값
+
+        // 현재 카테고리의 order를 변경
+        await prisma.categories.update({
+          where: { categoryId: currentCategory.categoryId },
+          data: { order },
+        });
+
+        // 대상 카테고리의 order를 변경
+        await prisma.categories.update({
+          where: { categoryId: targetCategory.categoryId },
+          data: { order: tempOrder },
+        });
+      } else {
+        // 현재 카테고리의 order값을 업데이트
+        await prisma.categories.update({
+          where: {
+            categoryId: currentCategory.categoryId,
+          },
+          data: {
+            name,
+            order,
+          },
+        });
+      }
     }
-
-    // 받은 categoryId와 일치하는 카테고리가 존재할때
-    // 받은 정보들을 가지고 db에 업데이트한다.
-    // [중요!]
-    await prisma.categories.update({
-      data: {
-        name,
-        order,
-      },
-      // 이중으로 다시 한번 확인
-      where: { categoryId: +categoryId },
-    });
 
     return res.status(200).json({ message: "카테고리 정보를 수정하였습니다." });
   } catch (error) {
@@ -167,21 +161,11 @@ router.patch("/category/:categoryId", async (req, res, next) => {
 });
 
 // 4. 카테고리 삭제 API
-// [✔️] 선택한 카테고리 삭제하기
-// [✔️] 카테고리 삭제 시, 해당 카테고리에 **연관된 모든 메뉴도 함께 삭제**됩니다.
-// [✔️] 선택한 카테고리가 존재하지 않을 경우, “존재하지 않는 카테고리입니다." 메시지 반환하기
-router.delete("/category/:categoryId", async (req, res, next) => {
+router.delete("/categories/:categoryId", async (req, res, next) => {
   try {
-    // [✔️] 유효성 검증
-    // 유효성 검증을 위해 필요한 Joi를 사용하기 위해서 Joi Schema를 구현해야 한다.
-    const categorySchema3 = Joi.object({
-      // 클라이언트가 전달한 Params 데이터를 검증
-      categoryId: Joi.number().integer().required(),
-    });
-
     // 삭제할 카테고리 아이디 전달받기
     // const { categoryId } = req.params;
-    const idValidation2 = await categorySchema3.validateAsync(req.params);
+    const idValidation2 = await schema.validateAsync(req.params);
     const { categoryId } = idValidation2;
 
     // 존재하지 않는 id를 입력했을 때
